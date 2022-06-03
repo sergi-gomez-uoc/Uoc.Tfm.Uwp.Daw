@@ -1,0 +1,33 @@
+﻿<UserControl
+    x:Class="Uoc.Tfm.Uwp.Daw.Controls.PianoRollUserControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Uoc.Tfm.Uwp.Daw.Controls"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    d:DesignHeight="1320"
+    d:DesignWidth="800" x:Name="PianoRollControl">
+
+    <Border BorderThickness="1" BorderBrush="DarkGray">
+        <ScrollViewer ZoomMode="Enabled" HorizontalScrollMode="Enabled" HorizontalScrollBarVisibility="Visible">
+            <Grid>
+                <Canvas 
+                    x:Name="Canvas" 
+                    Width="800"
+                    Height="1320"
+                    HorizontalAlignment="Left"
+                    Canvas.ZIndex="10"
+                    PointerPressed="Canvas_PointerPressed"
+                    PointerMoved="Canvas_PointerMoved"
+                    PointerReleased="Canvas_PointerReleased" >
+                    <!--<Polygon x:Name="Test1" Points="10,0 20,10 30,0" Fill="red" Stroke="White" StrokeThickness="3"></Polygon>-->
+                    <!--<Line X1="20" X2="20" Y1="0" Y2="800" StrokeThickness="2" Stroke="AliceBlue"></Line>-->
+                    <!--<GridView Height="300" Width="400">
+                
+            </GridView>-->
+                </Canvas>
+            </Grid>
+        </ScrollViewer>
+    </Border>
+</UserControl>

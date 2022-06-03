@@ -1,0 +1,8 @@
+﻿<Application
+    x:Class="Uoc.Tfm.Uwp.Daw.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:desktop4="http://schemas.microsoft.com/appx/manifest/desktop/windows10/4"
+    xmlns:local="using:Uoc.Tfm.Uwp.Daw">
+    
+</Application>

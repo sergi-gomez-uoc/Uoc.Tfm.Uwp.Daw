@@ -14,10 +14,6 @@ using Windows.UI.Popups;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Media.Animation;
-using Windows.UI.Xaml.Shapes;
-
-// The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
 
 namespace Uoc.Tfm.Uwp.Daw
 {
@@ -30,7 +26,10 @@ namespace Uoc.Tfm.Uwp.Daw
         SignalRCommunicationService _service;
         private readonly AppConfig _config;
 
-        public MainPage( AppConfig config)
+        Song receivedSong;
+        public bool TracksModified { get; set; } = false;
+
+        public MainPage(AppConfig config)
         {
             this.InitializeComponent();
 
@@ -44,19 +43,29 @@ namespace Uoc.Tfm.Uwp.Daw
             connection.Closed += Connection_Closed;
 
             _service = new SignalRCommunicationService(connection);
-            _service.MessageEvent += Service_MessageEvent;
             _service.ReceiveSong += Service_RecieveSong;
-            _service.ReceiveTrack += _service_ReceiveTrack; ;
+            _service.ReceiveTrack += Service_ReceiveTrack; ;
         }
 
         private async Task Connection_Closed(Exception arg)
         {
             await Task.Run(
                 () => this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal,
-                () => ConnectedWorldIcon.Foreground = new SolidColorBrush(Colors.Red)));
+                    () =>
+                        {
+                            ConnectedWorldIcon.Foreground = new SolidColorBrush(Colors.Red);
+                            PushAllButton.IsEnabled = false;
+                            UploadIcon.Foreground = new SolidColorBrush(Color.FromArgb(255, 10, 13, 28));
+                            ReceiveAllButton.IsEnabled = false;
+                            DownloadIcon.Foreground = new SolidColorBrush(Color.FromArgb(255, 10, 13, 28));
+                            CleanTracksUploadButtons();
+                            CleanTracksDownloadButtons();
+                            TracksModified = false;
+                        })
+                );
         }
 
-        private void _service_ReceiveTrack(Track track)
+        private void Service_ReceiveTrack(Track track)
         {
             var currentTrack = this.GetTrack(track.TrackId);
 
@@ -72,75 +81,76 @@ namespace Uoc.Tfm.Uwp.Daw
 
             if (control != null)
             {
-                control.TurnOnReceiveIcon();
+                control.ShowDownloadIcon();
             }
         }
 
-        Song receivedSong;
         private void Service_RecieveSong(Song obj)
         {
             ReceiveAllButton.IsEnabled = true;
+            DownloadIcon.Foreground = new SolidColorBrush(Colors.DarkGreen);
             receivedSong = obj;
-
         }
-
-        private void Service_MessageEvent(string obj)
-        {
-            //AnimationButton.Content = obj.ToString();
-
-        }
-
 
         private void AddTrackButton_Click(object sender, RoutedEventArgs e)
         {
-
             var track = new Track();
-
             track.TrackId = Guid.NewGuid();
             track.Name = "Track";
 
-            //(App.Current as App)._song.Tracks.Add(track);
             this.GetCurrentSong().Tracks.Add(track);
 
-            //var trackControl = new TrackUserControl(track.TrackId, track.Name, connection, _service);
-            //trackControl.Margin = new Thickness(0, 0, 0, 0);
-            //trackControl.Padding = new Thickness(0, 0, 0, 0);
-
-            //trackControl.Width = TrackListBox.ActualWidth;
-            //trackControl.TrackActionHandler += TrackControl_TrackActionHandler;
-            //trackControl.OnNameChanged += TrackControl_OnNameChanged;
-            //trackControl.OnTrackDeleted += TrackControl_OnTrackDeleted;
             var trackControl = CreateTrackUserControl(track.TrackId, track.Name);
+
             TrackListBox.Items.Add(trackControl);
+
+            if (TrackListBox.Items.Count == 1)
+            {
+                (App.Current as App).IsPianoRollShown = false;
+                TrackListBox.SelectedIndex = 0;
+            }
+
+            TracksModified = true;
 
             if (connection.State == HubConnectionState.Connected)
             {
                 PushAllButton.IsEnabled = true;
+                UploadIcon.Foreground = new SolidColorBrush(Colors.DarkGreen);
             }
         }
 
         private void TrackControl_OnTrackDeleted(object sender, EventArgs e)
         {
-            PushAllButton.IsEnabled = true;
+            TracksModified = true;
+            if (connection.State == HubConnectionState.Connected)
+            {
+                PushAllButton.IsEnabled = true;
+                UploadIcon.Foreground = new SolidColorBrush(Colors.DarkGreen);
+            }
         }
 
         private void TrackControl_OnNameChanged(object sender, EventArgs e)
         {
             var trackId = (sender as TrackUserControl).TrackId;
-            var trackName = (sender as TrackUserControl).TrackName;
-
-            var track = (App.Current as App)._song.Tracks.FirstOrDefault(x => x.TrackId == trackId);
+            var track = this.GetTrack(trackId);
 
             if (track != null)
             {
+                var trackName = (sender as TrackUserControl).TrackName;
                 track.Name = trackName;
             }
+            TracksModified = true;
 
+            if (connection.State == HubConnectionState.Connected)
+            {
+                PushAllButton.IsEnabled = true;
+                UploadIcon.Foreground = new SolidColorBrush(Colors.DarkGreen);
+            }
         }
 
         private void TrackControl_TrackActionHandler(object sender, EventArgs e)
         {
-            if (_service == null 
+            if (_service == null
                 || connection == null
                 || connection.State != HubConnectionState.Connected)
             {
@@ -148,6 +158,7 @@ namespace Uoc.Tfm.Uwp.Daw
             }
 
             PushAllButton.IsEnabled = true;
+            UploadIcon.Foreground = new SolidColorBrush(Colors.DarkGreen);
         }
 
         private async void ConnectToSignalRButton_Click(object sender, RoutedEventArgs e)
@@ -158,10 +169,8 @@ namespace Uoc.Tfm.Uwp.Daw
                 if (connection.State != HubConnectionState.Connected)
                 {
                     _service = new SignalRCommunicationService(connection);
-
-                    _service.MessageEvent += Service_MessageEvent;
                     _service.ReceiveSong += Service_RecieveSong;
-                    _service.ReceiveTrack += _service_ReceiveTrack;
+                    _service.ReceiveTrack += Service_ReceiveTrack;
                     await _service.Connect();
 
                     ConnectedWorldIcon.Foreground = new SolidColorBrush(Colors.Green);
@@ -169,8 +178,14 @@ namespace Uoc.Tfm.Uwp.Daw
                 else
                 {
                     ConnectedWorldIcon.Foreground = new SolidColorBrush(Colors.Red);
+
                     PushAllButton.IsEnabled = false;
+                    UploadIcon.Foreground = new SolidColorBrush(Color.FromArgb(255, 10, 13, 28));
                     ReceiveAllButton.IsEnabled = false;
+                    DownloadIcon.Foreground = new SolidColorBrush(Color.FromArgb(255, 10, 13, 28));
+                    CleanTracksUploadButtons();
+                    CleanTracksDownloadButtons();
+                    TracksModified = false;
 
                     var baseUrl = _config.GetKey("UrlBase");
                     connection = new HubConnectionBuilder()
@@ -192,7 +207,9 @@ namespace Uoc.Tfm.Uwp.Daw
         {
             try
             {
-                if (_service == null || connection == null || connection.State != HubConnectionState.Connected)
+                if (_service == null ||
+                    connection == null ||
+                    connection.State != HubConnectionState.Connected)
                 {
                     return;
                 }
@@ -201,7 +218,17 @@ namespace Uoc.Tfm.Uwp.Daw
 
                 await _service.SendSong(song);
 
+                TracksModified = false;
                 PushAllButton.IsEnabled = false;
+                UploadIcon.Foreground = new SolidColorBrush(Color.FromArgb(255, 10, 13, 28));
+
+                foreach (var trackControl in TrackListBox.Items)
+                {
+                    if (trackControl is TrackUserControl)
+                    {
+                        (trackControl as TrackUserControl).CleanUploadTrackButton();
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -212,10 +239,26 @@ namespace Uoc.Tfm.Uwp.Daw
 
         private async void ReceiveAllButton_Click(object sender, RoutedEventArgs e)
         {
-            await LoadSong(receivedSong);
+            try
+            {
+                await LoadSong(receivedSong);
 
-            ReceiveAllButton.IsEnabled = false;
+                ReceiveAllButton.IsEnabled = false;
+                DownloadIcon.Foreground = new SolidColorBrush(Color.FromArgb(255, 10, 13, 28));
 
+                foreach (var trackControl in TrackListBox.Items)
+                {
+                    if (trackControl is TrackUserControl)
+                    {
+                        (trackControl as TrackUserControl).CleanDownloadTrackButton();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                var dialog = new MessageDialog($"Error: {ex.Message}");
+                await dialog.ShowAsync();
+            }
         }
 
         private async Task LoadSong(Song song)
@@ -255,14 +298,6 @@ namespace Uoc.Tfm.Uwp.Daw
 
                     await this.Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
                     {
-                        //var trackControl = new TrackUserControl(track.TrackId, track.Name, connection, _service);
-                        //trackControl.Margin = new Thickness(0, 0, 0, 0);
-                        //trackControl.Padding = new Thickness(0, 0, 0, 0);
-
-                        //trackControl.Width = TrackListBox.ActualWidth;
-                        //trackControl.TrackActionHandler += TrackControl_TrackActionHandler;
-                        //trackControl.OnNameChanged += TrackControl_OnNameChanged;
-                        //trackControl.OnTrackDeleted += TrackControl_OnTrackDeleted;
                         var trackControl = CreateTrackUserControl(track.TrackId, track.Name);
                         TrackListBox.Items.Add(trackControl);
                     });
@@ -278,7 +313,9 @@ namespace Uoc.Tfm.Uwp.Daw
 
                     _ = Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
                     {
-                        var trackUserControl = TrackListBox.Items.FirstOrDefault(x => (x as TrackUserControl).TrackId == track.TrackId);
+                        var trackUserControl = TrackListBox
+                                                .Items
+                                                .FirstOrDefault(x => (x as TrackUserControl).TrackId == track.TrackId);
 
                         if (trackUserControl != null)
                         {
@@ -302,6 +339,80 @@ namespace Uoc.Tfm.Uwp.Daw
             trackControl.OnTrackDeleted += TrackControl_OnTrackDeleted;
 
             return trackControl;
+        }
+        private void TrackListBox_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            foreach (var track in TrackListBox.Items)
+            {
+                if (track is TrackUserControl)
+                {
+                    (track as TrackUserControl).Width = TrackListBox.ActualWidth;
+                }
+            }
+        }
+        private void TrackListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var selectedItem = TrackListBox.SelectedItem;
+
+            if (selectedItem == null ||
+                selectedItem is TrackUserControl == false)
+            {
+                return;
+            }
+
+            foreach (var item in TrackListBox.Items)
+            {
+                if (item is TrackUserControl)
+                {
+                    var selectedTrackId = (selectedItem as TrackUserControl).TrackId;
+
+                    (item as TrackUserControl)
+                        .SetTrackUserControlActive(selectedTrackId);
+                }
+            }
+        }
+        internal void CleanUploadAllSongIfNeeded()
+        {
+            var scoresUpdated = false;
+
+            foreach (var track in TrackListBox.Items)
+            {
+                if (track is TrackUserControl)
+                {
+                    var trackChanged = (track as TrackUserControl).HasScoredChanged;
+                    if (trackChanged)
+                    {
+                        scoresUpdated = true;
+                        break;
+                    }
+                }
+            }
+
+            if (!scoresUpdated && !TracksModified)
+            {
+                PushAllButton.IsEnabled = false;
+                UploadIcon.Foreground = new SolidColorBrush(Color.FromArgb(255, 10, 13, 28));
+            }
+        }
+        private void CleanTracksUploadButtons()
+        {
+            foreach (var trackControl in TrackListBox.Items)
+            {
+                if (trackControl is TrackUserControl)
+                {
+                    (trackControl as TrackUserControl).CleanUploadTrackButton();
+                }
+            }
+        }
+        private void CleanTracksDownloadButtons()
+        {
+            foreach (var trackControl in TrackListBox.Items)
+            {
+                if (trackControl is TrackUserControl)
+                {
+                    (trackControl as TrackUserControl).CleanUploadTrackButton();
+                }
+            }
         }
     }
 }

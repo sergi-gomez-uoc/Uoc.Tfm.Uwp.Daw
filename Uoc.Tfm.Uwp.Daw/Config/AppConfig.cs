@@ -22,5 +22,7 @@ namespace Uoc.Tfm.Uwp.Daw.Config
         }
 
         public string GetKey(string key) => (string)_configuration.GetValue(typeof(string), key);
+
+        public bool IsPianoRollShown { get; set; } = false;
     }
 }

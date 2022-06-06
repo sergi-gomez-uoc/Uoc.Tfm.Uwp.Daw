@@ -23,6 +23,8 @@ namespace Uoc.Tfm.Uwp.Daw
         internal Song _song;
         internal IList<Track> receivedTracks = new List<Track>();
 
+        public bool IsPianoRollShown { get; set; } = false;
+
         /// <summary>
         /// Initializes the singleton application object.  This is the first line of authored code
         /// executed, and as such is the logical equivalent of main() or WinMain().

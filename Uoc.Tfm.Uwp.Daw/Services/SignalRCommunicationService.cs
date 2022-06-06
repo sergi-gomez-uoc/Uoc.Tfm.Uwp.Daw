@@ -43,11 +43,6 @@ namespace Uoc.Tfm.Uwp.Daw.Services
             await _connection.StartAsync();
         }
 
-        public async Task SendMessage(string message)
-        {
-            await _connection.SendAsync("SendTest", message);
-        }
-
         public async Task SendSong(Song song)
         {
             await _connection.SendAsync("SendSong", song);

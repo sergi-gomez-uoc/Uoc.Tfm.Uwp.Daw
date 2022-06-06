@@ -28,14 +28,17 @@ namespace Uoc.Tfm.Uwp.Daw.Controls
         readonly int rows = 88;
         readonly int firstColumnWidth = 40;
 
+        private bool isMousePressed = false;
+        private PointerPoint initPoint;
+        Rectangle tempRectangle;
+        Score tempScore;
 
         public PianoRollUserControl(Guid trackId)
         {
             this.InitializeComponent();
             _trackId = trackId;
 
-            //var song = (App.Current as App)._song;
-            var track = this.GetTrack(_trackId); // song.Tracks.FirstOrDefault(x => x.TrackId == trackId);
+            var track = this.GetTrack(_trackId);
 
             if (track.Scores == null)
             {
@@ -78,25 +81,6 @@ namespace Uoc.Tfm.Uwp.Daw.Controls
                     //tempScore = score;
                     tempRectangle = DrawRectangle(tempScore);
                 }
-
-                /*
-                if (properties.IsRightButtonPressed)
-                {
-                    var score = GetScore(e.GetCurrentPoint(this));
-                    var sty = _scores.FirstOrDefault(x => x.Row == score.Row && x.Column >= score.Column && x.Column + x.Length >= score.Column);
-
-                    var tt = this.GetTrack(TrackId).Scores.FirstOrDefault(x => x.Row == score.Row && score.Column >= x.Column && score.Column <= (x.Column + x.Length));
-                    if (sty != null)
-                    {
-                        _scores.Remove(sty);
-                        (App.Current as App)._song.Tracks.FirstOrDefault(x => x.TrackId == TrackId).Scores.Remove(sty);
-                        ScoreChanged?.Invoke(this, EventArgs.Empty);
-                    }
-
-                    Canvas.Children.Remove(re);
-                    re = null;
-                }*/
-
             }
         }
 
@@ -145,6 +129,7 @@ namespace Uoc.Tfm.Uwp.Daw.Controls
                     track.Scores.Remove(trackScore);
                 }
 
+                ScoreChanged?.Invoke(sender, EventArgs.Empty);
             }
         }
 
@@ -272,125 +257,66 @@ namespace Uoc.Tfm.Uwp.Daw.Controls
             }
 
 
-            //var kk = new Line();
-            //kk.X1 = 20;
-            //kk.X2 = 20;
-            //kk.Y1 = 8;
-            //kk.Y2 = cellHeight * rows;
-            //kk.Stroke = new SolidColorBrush(Windows.UI.Colors.Black);
-            //kk.StrokeThickness = 2;
-            //Canvas.Children.Add(kk);
-
-
-            //var tri = new Polygon();
-            //tri.Points.Add(new Point(10, 0));
-            //tri.Points.Add(new Point(20, 8));
-            //tri.Points.Add(new Point(30, 0));
-            //tri.Fill = new SolidColorBrush(Windows.UI.Colors.Red);
-            //tri.Stroke = new SolidColorBrush(Windows.UI.Colors.White);
-            //tri.StrokeThickness = 3;
-            //Canvas.Children.Add(tri);
-            //tri.PointerPressed += Tri_PointerPressed;
-            //tri.PointerMoved += Tri_PointerMoved;
-            //tri.PointerReleased += Tri_PointerReleased;
-            //tri.PointerExited += Tri_PointerExited;
-
-
-            //var translate = new TranslateTransform()
-            //{
-
-            //};
-            //tri.RenderTransform = translate;
-            //translate.SetValue(FrameworkElement.NameProperty, "Testy");
-            //this.RenderTransform = translate;
-
-            //Canvas.SetZIndex(tri, 60);
-
         }
 
         private void Tri_PointerExited(object sender, PointerRoutedEventArgs e)
         {
             t = false;
-            //throw new NotImplementedException();
         }
 
         bool t;
         private void Tri_PointerReleased(object sender, PointerRoutedEventArgs e)
         {
             t = false;
-            //throw new NotImplementedException();
         }
 
-        private void Tri_PointerMoved(object sender, PointerRoutedEventArgs e)
-        {
-            if (t)
-            {
-                var ty = Canvas.Children.Where(x => x.GetType() == typeof(Polygon)).FirstOrDefault();
+        //private void Tri_PointerMoved(object sender, PointerRoutedEventArgs e)
+        //{
+        //    if (t)
+        //    {
+        //        var ty = Canvas.Children.Where(x => x.GetType() == typeof(Polygon)).FirstOrDefault();
 
-                var gf = Canvas.GetLeft(ty);
-                ;
-                var post = e.GetCurrentPoint(ty).Position.X;
-                //    var posM = e.GetCurrentPoint(this).Position.X;
+        //        var gf = Canvas.GetLeft(ty);
+        //        ;
+        //        var post = e.GetCurrentPoint(ty).Position.X;
+        //        //    var posM = e.GetCurrentPoint(this).Position.X;
 
-                if (ty != null)
-                {
-                    var curpos = e.GetCurrentPoint(this).Position.X;
-                    Canvas.SetLeft(ty, curpos);
-                }
-            }
-            //throw new NotImplementedException();
+        //        if (ty != null)
+        //        {
+        //            var curpos = e.GetCurrentPoint(this).Position.X;
+        //            Canvas.SetLeft(ty, curpos);
+        //        }
+        //    }
+        //    //throw new NotImplementedException();
 
-            //var y = ty.RenderTransform;
+        //    //var y = ty.RenderTransform;
 
 
-        }
+        //}
 
-        private void Tri_PointerPressed(object sender, PointerRoutedEventArgs e)
-        {
-            t = true;
-            e.Handled = true;
-            //throw new NotImplementedException();
+        //private void Tri_PointerPressed(object sender, PointerRoutedEventArgs e)
+        //{
+        //    t = true;
+        //    e.Handled = true;
+        //    //throw new NotImplementedException();
 
-            //(e.OriginalSource as Polygon).Translation = new System.Numerics.Vector3();
+        //    //(e.OriginalSource as Polygon).Translation = new System.Numerics.Vector3();
 
-            //var ty = Canvas.Children.Where(x => x.GetType() == typeof(Polygon)).FirstOrDefault();
-            //(ty.RenderTransform as TranslateTransform).X += 2;
-        }
+        //    //var ty = Canvas.Children.Where(x => x.GetType() == typeof(Polygon)).FirstOrDefault();
+        //    //(ty.RenderTransform as TranslateTransform).X += 2;
+        //}
 
         private void ClearScores()
         {
             Canvas.Children.Clear();
         }
 
-        private void DeleteScore()
-        {
-            //var ss= GetScore()
-            //_scores.Remove()
-        }
-
-        //private void DrawRectangle(Score score)
+        //private void DeleteScore()
         //{
-        //    var rect = new Rectangle();
-
-        //    rect.Width = cellWidth * score.Length;
-        //    rect.Height = cellHeight;
-        //    rect.Fill = new SolidColorBrush(Windows.UI.Colors.LightGray);
-        //    rect.PointerPressed += Rect_PointerPressed;
-        //    Canvas.Children.Add(rect);
-        //    rect.RadiusX = 2;
-        //    rect.RadiusY = 2;
-        //    rect.StrokeThickness = 2;
-        //    rect.Stroke = new SolidColorBrush(Windows.UI.Colors.Green);
-        //    //var x = e.GetCurrentPoint(this).Position.X;
-        //    //var y = e.GetCurrentPoint(this).Position.Y;
-
-        //    //var posX = (int)x / 50;
-        //    //var posY = (int)y / 20;
-
-        //    Canvas.SetLeft(rect, score.Column * cellWidth);
-        //    Canvas.SetTop(rect, score.Row * cellHeight);
-        //    Canvas.SetZIndex(rect, 50);
+        //    //var ss= GetScore()
+        //    //_scores.Remove()
         //}
+
 
         private Rectangle DrawRectangle(Score score, Rectangle tempRectangle = null)
         {
@@ -422,12 +348,10 @@ namespace Uoc.Tfm.Uwp.Daw.Controls
             }
             else
             {
-                if (score.Length > 0)  //TODO Change this
+                if (score.Length > 0)
                 {
                     tempRectangle.Width = cellWidth * score.Length;
                 }
-
-                //ScoreChanged?.Invoke(this, EventArgs.Empty);
 
                 return tempRectangle;
             }
@@ -443,12 +367,6 @@ namespace Uoc.Tfm.Uwp.Daw.Controls
             }
         }
 
-        private bool isMousePressed = false;
-        private PointerPoint initPoint;
-        //private bool drawn = false;
-        //private int? tempScoreCounter;
-        Rectangle tempRectangle;
-        Score tempScore;
         private void Canvas_PointerMoved(object sender, PointerRoutedEventArgs e)
         {
             if (isMousePressed)
@@ -495,7 +413,6 @@ namespace Uoc.Tfm.Uwp.Daw.Controls
 
                 isMousePressed = false;
                 initPoint = null;
-                //tempScoreCounter = null;
                 tempRectangle = null;
                 tempScore = null;
             }

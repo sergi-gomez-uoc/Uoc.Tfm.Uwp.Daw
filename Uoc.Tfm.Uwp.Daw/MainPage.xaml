@@ -5,7 +5,8 @@
     xmlns:local="using:Uoc.Tfm.Uwp.Daw"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    mc:Ignorable="d" Background="#FF2E3349" UseLayoutRounding="False" RequestedTheme="Default">
+    xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
+    mc:Ignorable="d" Background="#FF181C2D" UseLayoutRounding="False" RequestedTheme="Default">
 
     <Grid x:Name="MainGrid">
         <Grid.RowDefinitions>
@@ -14,49 +15,100 @@
             <RowDefinition Height="*"></RowDefinition>
             <RowDefinition Height="30"/>
         </Grid.RowDefinitions>
-
+        <Grid Grid.Row="0">
+            <StackPanel
+                Orientation="Horizontal"
+                Background="#FF464957">
+                <Button
+                    x:Name="ConnectToSignalRButton"
+                    Grid.Row="0"
+                    Click="ConnectToSignalRButton_Click"
+                    Height="50"
+                    Width="70"
+                    Padding="0" Background="#FF464957">
+                    <Viewbox Height="40">
+                        <SymbolIcon
+                            x:Name="ConnectedWorldIcon"
+                            Symbol="World"
+                            Foreground="#FF3F2C2C"></SymbolIcon>
+                    </Viewbox>
+                </Button>
+            </StackPanel>
+        </Grid>
         <Grid Grid.Row="1">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="*"></RowDefinition>
-            </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*" MinWidth="120"/>
                 <ColumnDefinition Width="5"/>
                 <ColumnDefinition Width="4*"/>
             </Grid.ColumnDefinitions>
-            <StackPanel Orientation="Horizontal">
-                <Button x:Name="AddTrackButton" Grid.Row="0" Click="AddTrackButton_Click" >
-                    <StackPanel Orientation="Horizontal">
-                        <SymbolIcon Symbol="Audio">
-                        </SymbolIcon>
-                    </StackPanel>
-                </Button>
-                <Button x:Name="ConnectToSignalRButton" Grid.Row="0" Click="ConnectToSignalRButton_Click">
-                    <SymbolIcon x:Name="ConnectedWorldIcon" Symbol="World" Foreground="Red"></SymbolIcon>
-                </Button>
-                <Button x:Name="PushAllButton" Grid.Row="0"  Click="PushAllButton_Click" IsEnabled="False" >
-                    <SymbolIcon x:Name="UploadIcon" Symbol="Upload">
-                        
-                    </SymbolIcon>
-                </Button>
-                <Button x:Name="ReceiveAllButton" Grid.Row="0"  Click="ReceiveAllButton_Click" IsEnabled="False">
-                    <SymbolIcon x:Name="DownloadIcon" Symbol="Download">
+            <Grid Grid.Column="0" BorderThickness="0 1 0 1" BorderBrush="Gray">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid Background="#FF181C2D" BorderBrush="Gray" BorderThickness="0 0 0 1">
+                    <Button
+                        x:Name="AddTrackButton"
+                        Click="AddTrackButton_Click"
+                        Background="#FF181C2D">
+                        <StackPanel Orientation="Horizontal">
+                            <SymbolIcon Symbol="Audio" Foreground="LightGray"/>
+                        </StackPanel>
+                    </Button>
+                    <StackPanel
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right">
+                        <Button Style="{StaticResource ButtonStyle1}" 
+                                x:Name="PushAllButton"
+                                Grid.Row="0"
+                                Click="PushAllButton_Click"
+                                IsEnabled="False"
+                                HorizontalAlignment="Right"
+                                IsDoubleTapEnabled="False"
+                                IsHoldingEnabled="False"
+                                IsRightTapEnabled="False"
+                                AllowFocusOnInteraction="False" Background="#FF181C2D" >
+                            <SymbolIcon 
+                                x:Name="UploadIcon"
+                                Symbol="Upload"
+                                Foreground="#FF10131C">
+                            </SymbolIcon>
 
-                    </SymbolIcon>
-                </Button>
-            </StackPanel>
-            <ListBox Grid.Row="1" x:Name="TrackListBox" Background="#FF181E36">
-                <ListBox.ItemContainerStyle>
-                    <Style TargetType="ListBoxItem">
-                        <Setter Property="HorizontalAlignment" Value="Stretch"></Setter>
-                        <Setter Property="VerticalAlignment" Value="Stretch"></Setter>
-                        <Setter Property="Margin" Value="0"></Setter>
-                        <Setter Property="Padding" Value="0"></Setter>
-                    </Style>
-                </ListBox.ItemContainerStyle>
-            </ListBox>
-            <Grid x:Name="Grid1" Grid.Column="2" Grid.Row="1"></Grid>
+                        </Button>
+                        <Button
+                            x:Name="ReceiveAllButton"
+                            Grid.Row="0"
+                            Style="{StaticResource ButtonStyle1}" 
+                            Click="ReceiveAllButton_Click"
+                            IsEnabled="False"
+                            HorizontalAlignment="Right" Background="#FF181C2D">
+                            <SymbolIcon
+                                x:Name="DownloadIcon"
+                                Symbol="Download"
+                                Foreground="#FF10131C"
+                                />
+                        </Button>
+                    </StackPanel>
+                </Grid>
+                <ListBox
+                    x:Name="TrackListBox"
+                    Grid.Row="1"
+                    Background="#FF181C2D"
+                    SizeChanged="TrackListBox_SizeChanged"
+                    SelectionChanged="TrackListBox_SelectionChanged">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="HorizontalAlignment" Value="Stretch"></Setter>
+                            <Setter Property="VerticalAlignment" Value="Stretch"></Setter>
+                            <Setter Property="Margin" Value="0"></Setter>
+                            <Setter Property="Padding" Value="0"></Setter>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                </ListBox>
+            </Grid>
+            <controls:GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Width="5">
+            </controls:GridSplitter>
+            <Grid x:Name="Grid1" Grid.Column="2" Grid.Row="1" BorderBrush="Gray" BorderThickness="0 0 0 1"></Grid>
         </Grid>
 
     </Grid>

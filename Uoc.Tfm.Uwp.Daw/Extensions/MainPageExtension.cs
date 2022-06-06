@@ -44,11 +44,6 @@ namespace Uoc.Tfm.Uwp.Daw.Extensions
 
         public static void RemoveTracks(this IEnumerable<Track> tracks)
         {
-            //foreach(var tr in tracks)
-            //{
-            //    (App.Current as App).receivedTracks.Remove(tr);
-            //}
-
             tracks.ToList().ForEach(x => (App.Current as App).receivedTracks.Remove(x));
         }
     }

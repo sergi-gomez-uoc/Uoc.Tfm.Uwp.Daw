@@ -16,6 +16,7 @@ namespace Uoc.Tfm.Uwp.Daw.Controls
     public sealed partial class TrackUserControl : UserControl, ControlInterface
     {
         private string trackName;
+        private bool isActive;
 
         private readonly HubConnection hubConnection;
         private readonly SignalRCommunicationService _service;
@@ -44,13 +45,14 @@ namespace Uoc.Tfm.Uwp.Daw.Controls
                 UploadButton.IsEnabled = value;
                 if (value)
                 {
-                    UploadButton.BorderBrush = 
+                    UploadButton.BorderBrush =
                         new SolidColorBrush(Colors.DarkGreen);
                 }
                 else
                 {
-                    UploadButton.BorderBrush = 
-                        new SolidColorBrush(Colors.LightGray);
+                    //UploadButton.BorderBrush =
+                    //    new SolidColorBrush(Colors.LightGray);
+                    UploadButton.BorderBrush = new SolidColorBrush(Color.FromArgb(255, 10, 13, 28));
                 }
             }
         }
@@ -60,6 +62,8 @@ namespace Uoc.Tfm.Uwp.Daw.Controls
         internal event EventHandler OnNameChanged;
 
         internal event EventHandler OnTrackDeleted;
+
+        public bool HasScoredChanged { get; set; } = false;
 
         public TrackUserControl(
             Guid? trackNumber = null,
@@ -71,53 +75,85 @@ namespace Uoc.Tfm.Uwp.Daw.Controls
             this.hubConnection = connection;
             this._service = service;
 
-            TrackId = trackNumber != null && trackNumber != default ? trackNumber.Value : Guid.NewGuid();
+            TrackId = trackNumber != null
+                        && trackNumber != default ?
+                                            trackNumber.Value :
+                                            Guid.NewGuid();
             TrackName = trackName != null ? trackName : "Track";
         }
 
+        public bool IsActive
+        {
+            get => isActive;
+            set
+            {
+                isActive = value;
+            }
+        }
+        public void SetTrackUserControlActive(Guid activeTrackId)
+        {
+            IsActive = activeTrackId == TrackId;
+
+            var isSymbolActivated = IsPianoRollSymbolActivated();
+            SetPianoRollSymbolColor(isSymbolActivated);
+
+            if (IsActive)
+            {
+                ShowPianoRoll();
+            }
+        }
+
+        private void SetPianoRollSymbolColor(bool active)
+        {
+            if (active)
+            {
+                TrackButtonSymbol.Foreground = new SolidColorBrush(Colors.LightGreen);
+            }
+            else
+            {
+                TrackButtonSymbol.Foreground = new SolidColorBrush(Colors.Gray);
+            }
+        }
+
+        private bool IsPianoRollSymbolActivated()
+        {
+            var showPianoRoll = (App.Current as App).IsPianoRollShown;
+
+            var isCurrentTrackSelected = ((this.Parent as ListBox).SelectedItem as TrackUserControl) != null &&
+                        ((this.Parent as ListBox).SelectedItem as TrackUserControl).TrackId == TrackId;
+
+            return showPianoRoll && isCurrentTrackSelected;
+        }
         private void TrackButton_Click(object sender, RoutedEventArgs e)
         {
+            if (!(Application.Current as App).IsPianoRollShown)
+            {
+                (this.Parent as ListBox).SelectedItem = this;
+            }
 
-            ShowPianoRoll();
+            var isCurrentTrackSelected = ((this.Parent as ListBox).SelectedItem as TrackUserControl) != null &&
+                        ((this.Parent as ListBox).SelectedItem as TrackUserControl).TrackId == TrackId;
 
-            //////var ss = new MessageDialog("Test" + this.Parent.ToString(), "Testing");
-
-            //////_ = ss.ShowAsync();
-
-
-            ////var pianoControl = new PianoRollUserControl(TrackId);
-            ////pianoControl.ScoreChanged += PianoControl_ScoreChanged;
-            //////var gridControl = ((this.Parent as Control).Parent as Grid).Children.Where(x => x.GetType() == typeof(Grid));
-
-            //////if (gridControl != null && gridControl.Any())
-            //////{
-            //////    if (gridControl.First() is Grid grid)
-            //////    {
-            //////        if (grid.Children.Count > 0)
-            //////        {
-            //////            grid.Children.RemoveAt(0);
-            //////        }
-            //////        grid.Children.Add(pianoControl);
-            //////    }
-            //////}
-            //////;
-
-            ////var grid = GetGrid();
-            ////if (grid != null)
-            ////{
-            ////    if (grid.Children.Count > 0)
-            ////    {
-            ////        grid.Children.RemoveAt(0);
-            ////    }
-            ////    grid.Children.Add(pianoControl);
-            ////}
+            if (isCurrentTrackSelected)
+            {
+                (App.Current as App).IsPianoRollShown = !(App.Current as App).IsPianoRollShown;
+                var isSymbolActivated = IsPianoRollSymbolActivated();
+                SetPianoRollSymbolColor(isSymbolActivated);
+                ShowPianoRoll();
+            }
+            else
+            {
+                (this.Parent as ListBox).SelectedItem = this;
+            }
         }
 
         private void PianoControl_ScoreChanged(object sender, EventArgs e)
         {
+            HasScoredChanged = true;
+
             IsPushButtonActive = hubConnection.State == HubConnectionState.Connected;
 
-            if (IsPushButtonActive)
+            if (IsPushButtonActive && HasScoredChanged)
             {
                 TrackActionHandler?.Invoke(this, EventArgs.Empty);
             }
@@ -141,38 +177,46 @@ namespace Uoc.Tfm.Uwp.Daw.Controls
                 return;
             }
 
-            //var items = (App.Current as App)._items;
-            //items.Remove(TrackId);
-            //var song = (App.Current as App)._song;
-            //var track = song.Tracks.FirstOrDefault(x => x.TrackId == TrackId);
             var track = this.GetTrack(TrackId);
             if (track != null)
             {
+                var listBox = Parent as ListBox;
+                if (listBox != null)
+                {
+                    var selectedTrack = listBox.SelectedItem;
+                    
+                    if (selectedTrack != null && (selectedTrack as TrackUserControl) != null)
+                    {
+                        if ((selectedTrack as TrackUserControl).TrackId == TrackId)
+                        {
+                            var grid = GetGrid();
+                            grid.Children.Clear();
+                        }
+                    }
+
+                    listBox.Items.Remove(this);
+                }
+
                 this.GetCurrentSong().Tracks.Remove(track); // song.Tracks.Remove(track);
 
                 OnTrackDeleted?.Invoke(sender, EventArgs.Empty);
             }
-
-            var listBox = this.Parent as ListBox;
-            var grid = GetGrid();
-            grid.Children.Clear();
-            listBox.Items.Remove(this);
         }
 
         private Grid GetGrid()
         {
-            var parentGrid = (this.Parent as Control).Parent as Grid;
-            var gridControl = parentGrid.Children.Where(x => x.GetType() == typeof(Grid));
+            const string PianoGrid = "Grid1";
 
-            if (gridControl != null && gridControl.Any())
-            {
-                if (gridControl.First() is Grid grid)
-                {
-                    return grid;
-                }
-            }
+            var parentGrid = (Parent as Control).Parent as Grid;
+            var rootGrid = (parentGrid.Parent as Grid);
 
-            return null;
+            var gridControl = rootGrid
+                                .Children
+                                .FirstOrDefault(
+                                        x => x.GetType() == typeof(Grid) &&
+                                        (x as Grid).Name == PianoGrid);
+
+            return gridControl as Grid;
         }
 
         private void PushDataButton_Click(object sender, RoutedEventArgs e)
@@ -180,26 +224,16 @@ namespace Uoc.Tfm.Uwp.Daw.Controls
             TrackActionHandler?.Invoke(this, EventArgs.Empty);
 
             UploadButton.IsEnabled = false;
+            UploadButton.BorderBrush = new SolidColorBrush(Color.FromArgb(255, 10, 13, 28));
         }
 
         private void TrackNameTextBlock_DoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
         {
-            //var textBlock = sender as TextBlock;
-
-            //var grid = textBlock.Parent as Grid;
-
-            //var textBox = grid.Children.FirstOrDefault(x => x.GetType() == typeof(TextBox)) as TextBox;
-
-
-            //var tt = ((sender as TextBlock).Parent as Grid).Children.FirstOrDefault(x => x.GetType() == typeof(TextBox));
-            //if (textBox != null)
-            //{
-                TrackNameTextBox.Visibility = Visibility.Visible;
-                TrackNameTextBox.Text = TrackName;
-                TrackNameTextBlock.Visibility = Visibility.Collapsed;
-                TrackNameTextBox.Focus(FocusState.Keyboard);
-                TrackNameTextBox.SelectAll();
-
+            TrackNameTextBox.Visibility = Visibility.Visible;
+            TrackNameTextBox.Text = TrackName;
+            TrackNameTextBlock.Visibility = Visibility.Collapsed;
+            TrackNameTextBox.Focus(FocusState.Keyboard);
+            TrackNameTextBox.SelectAll();
         }
 
         private void TrackNameTextBox_KeyDown(object sender, KeyRoutedEventArgs e)
@@ -223,10 +257,10 @@ namespace Uoc.Tfm.Uwp.Daw.Controls
             TrackNameTextBox.Visibility = Visibility.Collapsed;
         }
 
-        internal void TurnOnReceiveIcon()
+        internal void ShowDownloadIcon()
         {
-            RetrieveDataButton.IsEnabled = true;
-            RetrieveDataButton.BorderBrush = new SolidColorBrush(Colors.DarkGreen);
+            DownloadDataButton.IsEnabled = true;
+            DownloadDataButton.BorderBrush = new SolidColorBrush(Colors.DarkGreen);
 
         }
 
@@ -236,9 +270,7 @@ namespace Uoc.Tfm.Uwp.Daw.Controls
 
             if (receivedTracks == null || !receivedTracks.Any())
             {
-                //RetrieveDataButton.IsEnabled = false;
                 return;
-
             }
 
             var lastReceived = receivedTracks.Last();
@@ -255,39 +287,51 @@ namespace Uoc.Tfm.Uwp.Daw.Controls
             }
 
             receivedTracks.RemoveTracks();
-            RetrieveDataButton.IsEnabled = false;
-            RetrieveDataButton.BorderBrush = new SolidColorBrush(Colors.LightGray);
+            DownloadDataButton.IsEnabled = false;
+            DownloadDataButton.BorderBrush = new SolidColorBrush(Color.FromArgb(255, 10, 13, 28));
         }
 
         private void ShowPianoRoll()
         {
-            var pianoControl = new PianoRollUserControl(TrackId);
-            pianoControl.ScoreChanged += PianoControl_ScoreChanged;
-
             var grid = GetGrid();
+
             if (grid != null)
             {
-                if (grid.Children.Count > 0)
-                {
-                    grid.Children.RemoveAt(0);
-                }
+                grid.Children.Clear();
+            }
+
+            var showPianoRoll = (Application.Current as App).IsPianoRollShown;
+
+            if (showPianoRoll)
+            {
+                var pianoControl = new PianoRollUserControl(TrackId);
+                pianoControl.ScoreChanged += PianoControl_ScoreChanged;
                 grid.Children.Add(pianoControl);
             }
         }
 
-        private void Border_Tapped(object sender, TappedRoutedEventArgs e)
-        {
-
-        }
-
         private async void UploadButton_Click(object sender, RoutedEventArgs e)
         {
-            //TrackActionHandler?.Invoke(this, EventArgs.Empty);
-
             await _service.SendTrack(this.GetTrack(TrackId));
-
+            HasScoredChanged = false;
             UploadButton.IsEnabled = false;
             UploadButton.BorderBrush = new SolidColorBrush(Colors.LightGray);
+            UploadButton.BorderBrush = new SolidColorBrush(Color.FromArgb(255, 10, 13, 28));
+
+            (((((this.Parent as ListBox).Parent as Grid).Parent as Grid).Parent as Grid).Parent as MainPage).CleanUploadAllSongIfNeeded();
+        }
+
+        internal void CleanUploadTrackButton()
+        {
+            UploadButton.IsEnabled = false;
+            UploadButton.BorderBrush = new SolidColorBrush(Color.FromArgb(255, 10, 13, 28));
+            HasScoredChanged = false;
+        }
+
+        internal void CleanDownloadTrackButton()
+        {
+            DownloadDataButton.IsEnabled = false;
+            DownloadDataButton.BorderBrush = new SolidColorBrush(Color.FromArgb(255, 10, 13, 28));
         }
     }
 }

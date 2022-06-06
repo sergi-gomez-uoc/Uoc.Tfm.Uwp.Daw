@@ -51,8 +51,16 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <Border BorderThickness="1" CornerRadius="5" Background="Lavender" BorderBrush="White" Margin="0" Padding="6 4 6 0">
-            <Grid Margin="0" Padding="0" Background="Transparent" >
+        <Border
+            BorderThickness="1"
+            CornerRadius="5"
+            Background="#FF21213A"
+            BorderBrush="White"
+            Margin="0"
+            Padding="6 4 6 0">
+            <Grid Margin="0"
+                  Padding="0"
+                  Background="Transparent" >
                 <Grid.RowDefinitions>
                     <RowDefinition />
                     <RowDefinition/>
@@ -66,7 +74,13 @@
                         <ColumnDefinition Width="auto"/>
                         <ColumnDefinition Width="auto"/>
                     </Grid.ColumnDefinitions>
-                    <TextBlock x:Name="TrackNameTextBlock" Text="Track" Foreground="Navy" DoubleTapped="TrackNameTextBlock_DoubleTapped" Width="150" HorizontalAlignment="Left"></TextBlock>
+                    <TextBlock
+                        x:Name="TrackNameTextBlock"
+                        Text="Track"
+                        Foreground="#FF8B8B8D"
+                        DoubleTapped="TrackNameTextBlock_DoubleTapped"
+                        Width="150"
+                        HorizontalAlignment="Left"></TextBlock>
                     <TextBox
                         x:Name="TrackNameTextBox"
                         Visibility="Collapsed"
@@ -75,7 +89,6 @@
                         LostFocus="TrackNameTextBox_LostFocus"
                         Width="150"
                         HorizontalAlignment="Left">
-
                     </TextBox>
 
                     <Button 
@@ -83,74 +96,49 @@
                         Style="{StaticResource SignalRTemplateUpload}" 
                         Grid.Column="1"
                         IsEnabled="False"
-                        BorderBrush="LightGray"
+                        BorderBrush="#FF10131C"
                         BorderThickness="2"
                         CornerRadius="3"
                         Margin="0 0 5 0"
-                        Click="UploadButton_Click"
-                        >
-
+                        Click="UploadButton_Click">
                     </Button>
-
-                    <!--<Button x:Name="PushDataButton" Grid.Column="1" Background="Transparent" Click="PushDataButton_Click" Padding="0" IsEnabled="True" Margin="0">
-                        <ContentControl>
-                            <Border BorderBrush="Green" Background="Transparent" BorderThickness="1" CornerRadius="5" Padding="0" Margin="0">
-                                <SymbolIcon Symbol="Upload" Width="24"></SymbolIcon>
-                            </Border>
-                        </ContentControl>
-                    </Button>-->
-                    <!--<CheckBox Grid.Column="2">
-                        <Style TargetType="CheckBox">
-                            <Setter Property="Template">
-                                <Setter.Value>
-                                    <ControlTemplate TargetType="CheckBox">
-                                        <Border>
-                                            <SymbolIcon Symbol="Download"></SymbolIcon>
-                                        </Border>
-                                    </ControlTemplate>
-                                </Setter.Value>
-                            </Setter>
-                            <Setter Property="Content" Value=""></Setter>
-                        </Style>
-                    </CheckBox>-->
-                    <!--<Button x:Name="RetrieveDataButton" Grid.Column="2" Background="Transparent" Padding="0" IsEnabled="True" Click="RetrieveDataButton_Click" >-->
-                    <!--<Border 
-                            BorderBrush="Green"
-                            Background="Transparent"
-                            BorderThickness="1"
-                            CornerRadius="5"
-                            Padding="0"
-                            Grid.Column="2"
-                            Tapped="Border_Tapped">
-                        <SymbolIcon Symbol="Download" Foreground="Green" Width="28"></SymbolIcon>
-                    </Border>-->
-
-                    <!--</Button>-->
-
                     <Button 
-                        x:Name="RetrieveDataButton"
+                        x:Name="DownloadDataButton"
                         Grid.Column="2"
                         Style="{StaticResource SignalRTemplateDownload}"
                         IsEnabled="False"
-                        BorderBrush="LightGray"
+                        BorderBrush="#FF10131C"
                         BorderThickness="2"
                         CornerRadius="3"
                         Click="RetrieveDataButton_Click">
-
                     </Button>
                 </Grid>
 
-                <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button Grid.Row="1" x:Name="TrackButton" Click="TrackButton_Click" Padding="0" HorizontalAlignment="Right" Background="Transparent">
-                        <SymbolIcon Symbol="CalendarWeek" Foreground="Navy" HorizontalAlignment="Right" Margin="0"></SymbolIcon>
+                <Grid Grid.Row="1">
+                    <Button x:Name="DeleteButton"
+                            Click="DeleteButton_Click"
+                            HorizontalAlignment="Left"
+                            Padding="0"
+                            Margin="0"
+                            Background="Transparent">
+                        <SymbolIcon
+                            Symbol="Delete"
+                            Foreground="#7FF90606"/>
                     </Button>
-                    <Button Grid.Row="1" x:Name="DeleteButton" Click="DeleteButton_Click" HorizontalAlignment="Right" Padding="0" Margin="0" Background="Transparent">
-                        <SymbolIcon Symbol="Delete" Foreground="Red"></SymbolIcon>
+                    <Button 
+                        x:Name="TrackButton"
+                        Click="TrackButton_Click"
+                        Padding="0"
+                        HorizontalAlignment="Right"
+                        Background="Transparent">
+                        <SymbolIcon 
+                            x:Name="TrackButtonSymbol"
+                            Symbol="CalendarWeek"
+                            Foreground="#FF7B7C81"
+                            HorizontalAlignment="Right"
+                            Margin="0"/>
                     </Button>
-                    <!--<ToggleButton Padding="0">
-                        <SymbolIcon Symbol="CalendarWeek" Foreground="Navy" HorizontalAlignment="Center" Margin="0"></SymbolIcon>
-                    </ToggleButton>-->
-                </StackPanel>
+                </Grid>
             </Grid>
         </Border>
     </Grid>

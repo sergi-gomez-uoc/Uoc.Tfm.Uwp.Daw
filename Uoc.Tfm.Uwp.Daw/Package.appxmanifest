@@ -9,7 +9,7 @@
   <Identity
     Name="ddb0c4be-2242-49b8-a6f7-1116ea4a49fc"
     Publisher="CN=Sergi"
-    Version="1.0.8.0" />
+    Version="1.0.9.0" />
 
   <mp:PhoneIdentity PhoneProductId="ddb0c4be-2242-49b8-a6f7-1116ea4a49fc" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 

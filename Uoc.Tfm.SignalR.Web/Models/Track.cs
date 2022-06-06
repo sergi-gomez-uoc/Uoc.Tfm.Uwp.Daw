@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Uoc.Tfm.Infra.Score
+﻿namespace Uoc.Tfm.SignalR.Web.Models
 {
     public class Track
     {

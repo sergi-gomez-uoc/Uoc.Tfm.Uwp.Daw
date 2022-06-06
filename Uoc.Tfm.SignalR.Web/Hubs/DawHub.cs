@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
-using Uoc.Tfm.Infra.Score;
+using Uoc.Tfm.SignalR.Web.Models;
 
 namespace Uoc.Tfm.SignalR.Web.Hubs
 {
@@ -18,8 +18,6 @@ namespace Uoc.Tfm.SignalR.Web.Hubs
         public async Task SendTrack(Track track)
         {
             await Clients.Others.SendAsync("WriteTrack", track);
-
-
         }
     }
 }
